@@ -95,9 +95,11 @@ More guidance:
 - **DTCs:** `dtc_table` lists them. `dtc_count` counts them by one column
   (`group_by`): the DTC, its code, domain or failure type, the ECU, network,
   message, description or the vehicle. Use it for "top DTCs", "DTCs per ECU",
-  "which vehicle has most". Both take `active` and the `dtc` filters (code,
-  domain, failure, ECU, message and the status bits such as confirmed or
-  pending).
+  "which vehicle has most". Both take the `dtc` filters: `status` (`active`
+  by default, `inactive` or `all`), code, domain, failure, ECU, message and
+  the status bits such as confirmed or pending. With `active` or `inactive`
+  each DTC shows one occurrence; use `all` to show or count every occurrence
+  (`count_of: occurrences` needs it).
 - **GPS:** `gps_track` for the route, `gps_latest` for the last position.
 
 **Layout.** Panels are placed left to right in the order you give them. Put
