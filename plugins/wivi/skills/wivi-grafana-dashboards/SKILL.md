@@ -8,6 +8,9 @@ description: Build or change Grafana dashboards from WiVi vehicle data (signals,
 Dashboards are built from tested recipes and saved as drafts in the **AI Drafts**
 folder. Never write panel JSON or GraphQL queries by hand.
 
+Show the plan and get the user's approval before building anything. After
+approval, build and save in one go, without asking again.
+
 Design each dashboard from what the data is, not from what a signal is called.
 The user names signals or a question; you decide how each signal is best shown
 and explain the choice.
@@ -50,17 +53,21 @@ and explain the choice.
      "WiVI Data" (UID `mysql001`). Pass `mysql_uid` if it differs. If the
      server has no MySQL datasource, say so and stop: signal and DTC panels
      need it for the vehicle names.
-7. **Build** with `build_dashboard_draft`. It does not publish anything. Pass
-   with each signal panel what the profile reported: `kind`, `network_name`,
-   `unit`, `value_labels` (the profile's `labels`) for state signals, and
-   `min` and `max` for dials. A recipe that does not suit the stated kind is
-   rejected with the recipes that do.
-8. **Ask for approval.** Show the title, the dropdowns (or the vehicle or fleet
-   the dashboard is fixed to), the time range, and each panel with its signal,
-   panel type and a one-line reason. Wait for an explicit yes.
-9. **Save.** Find the AI Drafts folder UID with wivi-grafana `search_folders`,
-   then call `update_dashboard` with the returned dashboard, that folder UID and
-   `overwrite: false`. Give the user the dashboard link.
+7. **Show the plan and ask for approval. Do not call `build_dashboard_draft`
+   yet.** Show the title, the dropdowns (or the vehicle or fleet the dashboard
+   is fixed to), the time range, and each panel with its signal, panel type and
+   a one-line reason. Wait for an explicit yes. If the user asks for changes,
+   change the plan and show it again.
+8. **Build** with `build_dashboard_draft`. Pass with each signal panel what
+   the profile reported: `kind`, `network_name`, `unit`, `value_labels` (the
+   profile's `labels`) for state signals, and `min` and `max` for dials. A
+   recipe that does not suit the stated kind is rejected with the recipes that
+   do: correct the panel and build again, and tell the user afterwards what
+   differs from the approved plan.
+9. **Save straight away, without asking again.** Find the AI Drafts folder UID
+   with wivi-grafana `search_folders`, then call `update_dashboard` with the
+   returned dashboard, that folder UID and `overwrite: false`. Give the user
+   the dashboard link; they can now look at it in Grafana and ask for changes.
 
 ## Choosing panels
 
@@ -111,7 +118,8 @@ timelines (full width), then counts and tables.
 - Only AI Drafts is writable. Do not try to save anywhere else; other folders are
   read-only for this account.
 - To change an existing draft, load it with `get_dashboard_by_uid` first and keep
-  its `uid`, `id` and `version`.
+  its `uid`, `id` and `version`. The plan names the dashboard and what changes
+  in it; the approval covers saving over it.
 - The builder supports "last N hours". For a fixed date range, set the
   dashboard's `time.from` and `time.to` in the returned JSON before saving, and
   say so.
