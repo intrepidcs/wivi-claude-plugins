@@ -10,27 +10,39 @@ folder. Never write panel JSON or GraphQL queries by hand.
 
 ## Steps
 
-1. **Find the vehicle.** Use wivi-api (`organization_metadata`, `fleet_metadata`,
-   `vehicle_metadata`) to get the numeric vehicle id. If more than one vehicle
-   matches, ask.
-2. **Find the signals.** Call wivi-analytics `signal_metadata` with the
+1. **Decide how the dashboard picks vehicles.**
+   - Default: Organization, Fleet and Vehicle dropdowns at the top, and every
+     panel follows the selection. Leave `vehicle_id` and `fleet_id` out of the
+     draft.
+   - Only when the user names a vehicle or fleet, or asks for no dropdowns:
+     pass `vehicle_id` or `fleet_id` (not both). The dashboard is then fixed to
+     it. With `fleet_id`, panels show every vehicle of the fleet.
+2. **Find a vehicle to take the signal names from.** Use wivi-api
+   (`organization_metadata`, `fleet_metadata`, `vehicle_metadata`) to get its
+   numeric id. If the user named none, or more than one matches, ask.
+3. **Find the signals.** Call wivi-analytics `signal_metadata` with the
    `vehicle_id` and a short filter. Signal names differ between loggers and the
    filter also matches units: engine speed may be `MasterSignal` with unit `RPM`.
    Never guess a name. If nothing fits, show the closest matches and ask.
-3. **Check when data exists.** Call `signal_latest` for each signal. If the
+4. **Check when data exists.** Call `signal_latest` for each signal. If the
    latest reading is older than the requested window, tell the user and offer a
    window that covers the data (up to 2160 hours).
-4. **Pick recipes** with `list_dashboard_templates`: `signal_trend` (time series),
+5. **Pick recipes** with `list_dashboard_templates`: `signal_trend` (time series),
    `signal_latest` (current value), `dtc_table`, `gps_track` (map),
    `gps_latest` (last position). At most 12 panels.
-5. **Pick the datasource.** Default `wildgraphql` (UID `wivi-graphql`). Use
-   `infinity` only when the response needs reshaping. Confirm the UIDs on this
-   server with wivi-grafana `list_datasources`; pass `wildgraphql_uid` or
-   `infinity_uid` if they differ.
-6. **Build** with `build_dashboard_draft`. It does not publish anything.
-7. **Ask for approval.** Show the title, each panel (signal and unit), the
-   datasource and the time range. Wait for an explicit yes.
-8. **Save.** Find the AI Drafts folder UID with wivi-grafana `search_folders`,
+6. **Pick the datasources.** Confirm the UIDs on this server with wivi-grafana
+   `list_datasources`.
+   - Panels: default `wildgraphql` (UID `wivi-graphql`). Use `infinity` only
+     when the response needs reshaping. Pass `wildgraphql_uid` or
+     `infinity_uid` if they differ.
+   - Dropdowns: the WiVi API datasource (UID `wivi-api`). Pass `wivi_api_uid`
+     if it differs. If the server has no WiVi API datasource, say so and ask
+     whether to fix the dashboard to one vehicle or fleet instead.
+7. **Build** with `build_dashboard_draft`. It does not publish anything.
+8. **Ask for approval.** Show the title, the dropdowns (or the vehicle or fleet
+   the dashboard is fixed to), each panel (signal and unit), the datasources
+   and the time range. Wait for an explicit yes.
+9. **Save.** Find the AI Drafts folder UID with wivi-grafana `search_folders`,
    then call `update_dashboard` with the returned dashboard, that folder UID and
    `overwrite: false`. Give the user the dashboard link.
 
