@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "wivi-analytics": {
+      "type": "http",
+      "url": "https://${user_config.host}/analytics-ai/mcp/",
+      "oauth": { "clientId": "wivi-claude-code" }
+    },
+    "wivi-api": {
+      "type": "http",
+      "url": "https://${user_config.host}/wivi-api-ai/mcp/",
+      "oauth": { "clientId": "wivi-claude-code" }
+    },
+    "wivi-grafana": {
+      "type": "http",
+      "url": "https://${user_config.host}/grafana-ai/mcp/",
+      "oauth": { "clientId": "wivi-claude-code" }
+    }
+  }
+}

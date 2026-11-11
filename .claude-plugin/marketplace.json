@@ -1,0 +1,14 @@
+{
+  "name": "wivi",
+  "owner": {
+    "name": "Intrepid Control Systems UK analytics"
+  },
+  "description": "Claude Code plugins for WiVi",
+  "plugins": [
+    {
+      "name": "wivi",
+      "source": "./plugins/wivi",
+      "description": "WiVi MCP servers (analytics, WiVi API, Grafana) and the dashboard-building skill"
+    }
+  ]
+}

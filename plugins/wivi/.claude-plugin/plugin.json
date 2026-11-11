@@ -1,0 +1,15 @@
+{
+  "name": "wivi",
+  "description": "WiVi MCP servers (analytics, WiVi API, Grafana) and the dashboard-building skill",
+  "author": {
+    "name": "Intrepid Control Systems UK analytics"
+  },
+  "userConfig": {
+    "host": {
+      "type": "string",
+      "title": "WiVi server",
+      "description": "Hostname of your WiVi server only, for example myserver.wirelessneovi.com",
+      "required": true
+    }
+  }
+}
