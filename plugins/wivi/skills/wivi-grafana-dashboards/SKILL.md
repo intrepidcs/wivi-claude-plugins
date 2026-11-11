@@ -82,8 +82,11 @@ More guidance:
   in each interval.
 - **Several vehicles or a fleet:** add `signal_compare` to put the vehicles side
   by side. Trends, bars and timelines already draw one series per vehicle.
-- **Related signals:** show them in neighbouring panels over the same time
-  range, for example speed above a gear timeline.
+- **Related signals:** signals with the same unit go in one panel: pass
+  `signal_names` instead of `signal_name` on `signal_trend`, `signal_latest`
+  or `signal_table`, for example the four wheel speeds in one trend. Signals
+  of different kinds go in neighbouring panels over the same time range, for
+  example speed above a gear timeline.
 - **Units:** pass the profile's `unit` as a Grafana unit (`velocitykmh`,
   `celsius`, `volt`, `percent`, `lengthkm`, `rotrpm`). Most signals have no
   stored unit; leave it out then.
