@@ -13,7 +13,8 @@ folder. Never write panel JSON or GraphQL queries by hand.
 1. **Decide how the dashboard picks vehicles.**
    - Default: Organization, Fleet and Vehicle dropdowns at the top, and every
      panel follows the selection. Leave `vehicle_id` and `fleet_id` out of the
-     draft.
+     draft. Several vehicles can be selected at once unless the dashboard has
+     a GPS panel, which needs one vehicle.
    - Only when the user names a vehicle or fleet, or asks for no dropdowns:
      pass `vehicle_id` or `fleet_id` (not both). The dashboard is then fixed to
      it. With `fleet_id`, panels show every vehicle of the fleet.
@@ -35,9 +36,10 @@ folder. Never write panel JSON or GraphQL queries by hand.
    - Panels: default `wildgraphql` (UID `wivi-graphql`). Use `infinity` only
      when the response needs reshaping. Pass `wildgraphql_uid` or
      `infinity_uid` if they differ.
-   - Dropdowns: the WiVi API datasource (UID `wivi-api`). Pass `wivi_api_uid`
-     if it differs. If the server has no WiVi API datasource, say so and ask
-     whether to fix the dashboard to one vehicle or fleet instead.
+   - Dropdowns and vehicle names: the WiVi MySQL datasource, usually named
+     "WiVI Data" (UID `mysql001`). Pass `mysql_uid` if it differs. If the
+     server has no MySQL datasource, say so and stop: signal and DTC panels
+     need it for the vehicle names.
 7. **Build** with `build_dashboard_draft`. It does not publish anything.
 8. **Ask for approval.** Show the title, the dropdowns (or the vehicle or fleet
    the dashboard is fixed to), each panel (signal and unit), the datasources
