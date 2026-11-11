@@ -8,6 +8,10 @@ description: Build or change Grafana dashboards from WiVi vehicle data (signals,
 Dashboards are built from tested recipes and saved as drafts in the **AI Drafts**
 folder. Never write panel JSON or GraphQL queries by hand.
 
+Design each dashboard from what the data is, not from what a signal is called.
+The user names signals or a question; you decide how each signal is best shown
+and explain the choice.
+
 ## Steps
 
 1. **Decide how the dashboard picks vehicles.**
@@ -25,12 +29,18 @@ folder. Never write panel JSON or GraphQL queries by hand.
    `vehicle_id` and a short filter. Signal names differ between loggers and the
    filter also matches units: engine speed may be `MasterSignal` with unit `RPM`.
    Never guess a name. If nothing fits, show the closest matches and ask.
-4. **Check when data exists.** Call `signal_latest` for each signal. If the
-   latest reading is older than the requested window, tell the user and offer a
-   window that covers the data (up to 2160 hours).
-5. **Pick recipes** with `list_dashboard_templates`: `signal_trend` (time series),
-   `signal_latest` (current value), `dtc_table`, `gps_track` (map),
-   `gps_latest` (last position). At most 12 panels.
+4. **Profile the signals.** Call `signal_profile` with the signal names (up to
+   10 per call) and a window that holds data.
+   - If a profile's `kind` is `no_data`, call `signal_latest` to see when the
+     signal last reported, tell the user, and profile a window that covers it
+     (up to 2160 hours). Use that window for the dashboard too.
+   - A signal can exist on several networks with different data. The profile
+     has one entry per network: pick the one that fits the question, or ask,
+     and pass its `network_name` with the panel.
+5. **Design the panels.** Call `list_dashboard_templates` and choose for each
+   signal the recipes that show it best. See "Choosing panels" below. Propose
+   one to three panels per signal, plus panels that relate signals to each
+   other when that answers the question. At most 12 panels.
 6. **Pick the datasources.** Confirm the UIDs on this server with wivi-grafana
    `list_datasources`.
    - Panels: default `wildgraphql` (UID `wivi-graphql`). Use `infinity` only
@@ -40,13 +50,56 @@ folder. Never write panel JSON or GraphQL queries by hand.
      "WiVI Data" (UID `mysql001`). Pass `mysql_uid` if it differs. If the
      server has no MySQL datasource, say so and stop: signal and DTC panels
      need it for the vehicle names.
-7. **Build** with `build_dashboard_draft`. It does not publish anything.
+7. **Build** with `build_dashboard_draft`. It does not publish anything. Pass
+   with each signal panel what the profile reported: `kind`, `network_name`,
+   `unit`, `value_labels` (the profile's `labels`) for state signals, and
+   `min` and `max` for dials. A recipe that does not suit the stated kind is
+   rejected with the recipes that do.
 8. **Ask for approval.** Show the title, the dropdowns (or the vehicle or fleet
-   the dashboard is fixed to), each panel (signal and unit), the datasources
-   and the time range. Wait for an explicit yes.
+   the dashboard is fixed to), the time range, and each panel with its signal,
+   panel type and a one-line reason. Wait for an explicit yes.
 9. **Save.** Find the AI Drafts folder UID with wivi-grafana `search_folders`,
    then call `update_dashboard` with the returned dashboard, that folder UID and
    `overwrite: false`. Give the user the dashboard link.
+
+## Choosing panels
+
+`signal_profile` reports each signal's `kind` and `fitting_recipes`. Those are
+starting points, not rules: pick what answers the user's question, and say why.
+
+| Kind | What it is | Panels to consider |
+| --- | --- | --- |
+| `state` | A few named or whole-number states: gear, power mode, door, link status | `signal_state`: which state when, one row per vehicle. `state_count`: how often each state occurred. `signal_latest`: the current state. |
+| `numeric` | A measurement: speed, temperature, voltage | `signal_trend`: change over time. `signal_gauge`: the latest value on a dial, when there is a natural range. `signal_histogram`: how the values are distributed. `signal_bar`: peaks or totals per hour or day. |
+| `counter` | Only goes up: odometer, operating hours | `signal_latest`: the current reading. `signal_bar` with `max`: its level per day. `signal_trend`: its growth. |
+| `text` | VIN, part number, software version | `signal_text`: the latest value. `signal_table`: the stored values with their times. |
+| `constant` | One value in the whole window | `signal_latest`, or leave it out and tell the user it does not change. |
+
+More guidance:
+
+- **States:** pass `value_labels` so the panel shows "Park" and "Drive" instead
+  of numbers. Never average a state signal; state recipes use the highest state
+  in each interval.
+- **Several vehicles or a fleet:** add `signal_compare` to put the vehicles side
+  by side. Trends, bars and timelines already draw one series per vehicle.
+- **Related signals:** show them in neighbouring panels over the same time
+  range, for example speed above a gear timeline.
+- **Units:** pass the profile's `unit` as a Grafana unit (`velocitykmh`,
+  `celsius`, `volt`, `percent`, `lengthkm`, `rotrpm`). Most signals have no
+  stored unit; leave it out then.
+- **Little data:** when a profile's note says the kind is uncertain, say so and
+  prefer `signal_table` or `signal_latest`.
+- **DTCs:** `dtc_table` lists them. `dtc_count` counts them by one column
+  (`group_by`): the DTC, its code, domain or failure type, the ECU, network,
+  message, description or the vehicle. Use it for "top DTCs", "DTCs per ECU",
+  "which vehicle has most". Both take `active` and the `dtc` filters (code,
+  domain, failure, ECU, message and the status bits such as confirmed or
+  pending).
+- **GPS:** `gps_track` for the route, `gps_latest` for the last position.
+
+**Layout.** Panels are placed left to right in the order you give them. Put
+current values first (stats, dials, text), then trends and bars, then state
+timelines (full width), then counts and tables.
 
 ## Rules
 
